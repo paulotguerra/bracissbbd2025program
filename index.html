@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Programação do Evento - BRACIS 2025</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Estilos personalizados e cores baseadas no logo */
+        :root {
+            --color-primary-purple: #8E44AD;
+            --color-accent-orange: #F39C12;
+            --color-accent-green: #27AE60;
+            --color-accent-blue: #0A3D62;
+            --color-accent-teal: #16A085;
+            --color-background-light: #fdfaf3;
+            --font-family-sans: 'Inter', sans-serif;
+        }
+
+        body {
+            font-family: var(--font-family-sans);
+            background-color: var(--color-background-light);
+            color: #333;
+        }
+
+        /* Classes de cores para os cards das sessões */
+        .card-color-purple { background-color: var(--color-primary-purple); border-left-color: #6c3483; }
+        .card-color-orange { background-color: var(--color-accent-orange); border-left-color: #c87f0a; }
+        .card-color-green { background-color: var(--color-accent-green); border-left-color: #1e8449; }
+        .card-color-blue { background-color: var(--color-accent-blue); border-left-color: #082d49; }
+        .card-color-teal { background-color: var(--color-accent-teal); border-left-color: #117a65; }
+
+        .schedule-grid {
+            display: grid;
+            position: relative;
+        }
+
+        .session-card {
+            position: absolute;
+            color: white;
+            padding: 8px;
+            border-radius: 8px;
+            border-left: 5px solid;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: normal;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            z-index: 1;
+        }
+
+        .session-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+            z-index: 5;
+        }
+        
+        .session-card strong {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .session-card.span-all {
+            text-align: center;
+            font-weight: bold;
+            z-index: 2;
+        }
+
+        .time-label {
+            font-weight: 500;
+            background-color: #f9fafb;
+        }
+        
+        .room-header {
+            text-align: center;
+            font-weight: 500;
+            position: sticky;
+            background-color: #f9fafb;
+            top: 0;
+            z-index: 3;
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+            height: 40px;
+            border-bottom-width: 2px;
+            border-color: #e5eb;
+            cursor: help;
+        }
+
+        #tooltip {
+            position: fixed;
+            display: none;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.85);
+            color: white;
+            border-radius: 8px;
+            pointer-events: none;
+            z-index: 999;
+            max-width: 350px;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            backdrop-filter: blur(5px);
+        }
+        #tooltip strong {
+            color: var(--color-accent-orange);
+            display: block;
+            margin-bottom: 4px;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div id="tooltip"></div>
+
+    <div class="container mx-auto p-4 md:p-8">
+        
+
+        <div id="day-selector" class="flex flex-wrap justify-center gap-2 mb-8 bg-white p-2 rounded-full shadow-md">
+            <button data-day="29/09" class="day-btn px-4 md:px-6 py-2 rounded-full text-sm font-semibold transition" style="background-color: var(--color-primary-purple); color: white;">29/09</button>
+            <button data-day="30/09" class="day-btn px-4 md:px-6 py-2 rounded-full text-sm font-semibold transition">30/09</button>
+            <button data-day="01/10" class="day-btn px-4 md:px-6 py-2 rounded-full text-sm font-semibold transition">01/10</button>
+            <button data-day="02/10" class="day-btn px-4 md:px-6 py-2 rounded-full text-sm font-semibold transition">02/10</button>
+        </div>
+
+        <div id="schedule-container" class="bg-white rounded-lg shadow-lg">
+            <!-- Conteúdo gerado dinamicamente -->
+        </div>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            
+            // --- INÍCIO DA ÁREA DE EDIÇÃO FÁCIL ---
+            const rooms = ["SJA1", "SJA2", "SJA3", "SJA4", "SR1", "SR2", "SR3", "SR4", "SRQ1", "SRQ2", "SAB1", "SAB2", "Poster"];
+            
+            const roomFullNames = {
+                "SJA": "Salão José de Alencar", "SR": "Sala de Reunião", "SRQ": "Salão Raquel de Queiroz",
+                "SAB": "Salão Antônio Bandeira", "AUDITORIO": "Auditório Principal", "POSTER": "Área de Pôsteres"
+            };
+
+            const sessions = [   
+            
+            ];
+            
+            const colors = {
+                purple: 'card-color-purple', orange: 'card-color-orange', green: 'card-color-green', 
+                blue: 'card-color-blue', teal: 'card-color-teal', gray: 'bg-gray-400 border-l-gray-500'
+            };
+
+            const processSessions = (rawSessions) => {
+                const groupedSessions = {};
+                const processedList = [];
+
+                rawSessions.forEach(session => {
+                    // Corrige datas inválidas
+                    if (session.day && session.day.includes('45929')) {
+                        session.day = '29/09';
+                    }
+
+                    if (typeof session.papers === 'string' && session.authors) {
+                        const groupId = `${session.day}-${session.startTime}-${session.endTime}-${session.room}-${session.title}`;
+                        if (!groupedSessions[groupId]) {
+                            const masterSession = { ...session };
+                            delete masterSession.authors;
+                            masterSession.papers = [];
+                            groupedSessions[groupId] = masterSession;
+                            processedList.push(masterSession);
+                        }
+                        groupedSessions[groupId].papers.push({
+                            title: session.papers,
+                            authors: session.authors
+                        });
+                    } else {
+                        processedList.push(session);
+                    }
+                });
+                return processedList;
+            };
+
+            const processedSessions = processSessions(sessions);
+            // --- FIM DA ÁREA DE EDIÇÃO FÁCIL ---
+
+            const scheduleContainer = document.getElementById('schedule-container');
+            const daySelector = document.getElementById('day-selector');
+            const tooltip = document.getElementById('tooltip');
+            const START_HOUR = 7, END_HOUR = 20, ROW_HEIGHT = 30;
+
+            const timeToMinutes = t => t.split(':').map(Number).reduce((h, m) => h * 60 + m);
+            
+            const getRoomFullName = (roomCode) => {
+                if (!roomCode) return '';
+                const code = roomCode.replace(/\d/g, '').toUpperCase();
+                const number = roomCode.match(/\d+/);
+                const baseName = roomFullNames[code] || roomCode;
+                return number ? `${baseName} ${number[0]}` : baseName;
+            };
+
+            const renderGridView = (day) => {
+                scheduleContainer.innerHTML = `
+                    <div class="overflow-x-auto p-4">
+                        <div id="schedule-grid" class="schedule-grid min-w-[2000px]"></div>
+                    </div>`;
+                const scheduleGrid = document.getElementById('schedule-grid');
+                
+                const totalIntervals = (END_HOUR - START_HOUR) * 4;
+                scheduleGrid.style.gridTemplateColumns = `100px repeat(${rooms.length}, 1fr)`;
+                scheduleGrid.style.gridTemplateRows = `auto repeat(${totalIntervals}, ${ROW_HEIGHT}px)`;
+                scheduleGrid.style.height = `${(totalIntervals * ROW_HEIGHT) + 40}px`;
+
+                const headerSpacer = document.createElement('div');
+                headerSpacer.className = 'room-header';
+                headerSpacer.style.gridRow = '1';
+                headerSpacer.style.gridColumn = '1';
+                scheduleGrid.appendChild(headerSpacer);
+
+                rooms.forEach((room, index) => {
+                    const roomHeader = document.createElement('div');
+                    roomHeader.className = 'room-header';
+                    roomHeader.textContent = room;
+                    roomHeader.dataset.roomcode = room;
+                    roomHeader.style.gridRow = '1';
+                    roomHeader.style.gridColumn = `${index + 2}`;
+                    scheduleGrid.appendChild(roomHeader);
+                });
+
+                for (let h = START_HOUR; h < END_HOUR; h++) {
+                    const timeLabel = document.createElement('div');
+                    timeLabel.className = 'time-label pr-2 text-right text-sm text-gray-500';
+                    timeLabel.textContent = `${String(h).padStart(2, '0')}:00`;
+                    timeLabel.style.gridRow = `${((h - START_HOUR) * 4) + 2} / span 4`;
+                    timeLabel.style.gridColumn = '1';
+                    scheduleGrid.appendChild(timeLabel);
+                }
+                
+                for (let i = 0; i <= totalIntervals; i++) {
+                    const line = document.createElement('div');
+                    line.style.gridRow = `${i + 2}`;
+                    line.style.gridColumn = `1 / -1`;
+                    line.className = (i % 4 === 0) ? 'border-t border-gray-300' : 'border-t border-gray-200 border-dashed';
+                    if (i === 0) line.className = '';
+                    scheduleGrid.appendChild(line);
+                }
+
+                for (let i = 0; i < rooms.length; i++) {
+                    const vLine = document.createElement('div');
+                    vLine.style.gridColumn = `${i + 2}`;
+                    vLine.style.gridRow = `1 / -1`;
+                    vLine.className = 'border-r border-gray-200';
+                    scheduleGrid.appendChild(vLine);
+                }
+
+                const daySessions = processedSessions.filter(s => s.day === day);
+                
+                setTimeout(() => {
+                    const gridEl = document.getElementById('schedule-grid');
+                    if (!gridEl) return;
+
+                    daySessions.forEach((session) => {
+                        const topOffset = ((timeToMinutes(session.startTime) - START_HOUR * 60) / 15 * ROW_HEIGHT) + 40;
+                        const height = ((timeToMinutes(session.endTime) - timeToMinutes(session.startTime)) / 15 * ROW_HEIGHT) - 4;
+                        const card = document.createElement('a');
+                        card.href = session.link;
+                        card.className = `session-card ${colors[session.color] || colors.gray}`;
+                        card.style.top = `${topOffset}px`;
+                        card.style.height = `${height}px`;
+                        card.dataset.sessionId = daySessions.indexOf(session);
+
+                        if (session.span === 'all') {
+                            card.classList.add('span-all');
+                            card.style.left = `100px`;
+                            card.style.width = `${gridEl.clientWidth - 100}px`;
+                        } else {
+                            const roomIndex = rooms.indexOf(session.room);
+                            if (roomIndex === -1) return;
+                            const colWidth = (gridEl.clientWidth - 100) / rooms.length;
+                            card.style.left = `${100 + roomIndex * colWidth}px`;
+                            card.style.width = `${colWidth}px`;
+                        }
+                        card.innerHTML = `<strong>${session.title}</strong><p class="text-xs mt-1 opacity-80">${session.startTime} - ${session.endTime}</p>`;
+                        gridEl.appendChild(card);
+                    });
+                }, 0);
+            };
+
+            const renderListView = (day) => {
+                scheduleContainer.innerHTML = `<div id="schedule-list" class="p-4 space-y-6"></div>`;
+                const scheduleList = document.getElementById('schedule-list');
+                const daySessions = processedSessions.filter(s => s.day === day).sort((a, b) => timeToMinutes(a.startTime) - timeToMinutes(b.startTime));
+                const groupedSessions = daySessions.reduce((acc, session) => {
+                    const timeKey = `${session.startTime} - ${session.endTime}`;
+                    if (!acc[timeKey]) acc[timeKey] = [];
+                    acc[timeKey].push(session);
+                    return acc;
+                }, {});
+
+                if (Object.keys(groupedSessions).length === 0) {
+                    scheduleList.innerHTML = `<p class="text-center text-gray-500 py-8">Nenhuma sessão programada para este dia.</p>`;
+                    return;
+                }
+
+                for (const timeKey in groupedSessions) {
+                    const timeSlotEl = document.createElement('div');
+                    timeSlotEl.innerHTML = `<h3 class="text-xl font-bold mb-3" style="color: var(--color-primary-purple);">${timeKey}</h3>`;
+                    groupedSessions[timeKey].forEach(session => {
+                        const sessionEl = document.createElement('a');
+                        sessionEl.href = session.link;
+                        sessionEl.className = `block p-4 mb-3 rounded-lg text-white shadow-md transition hover:shadow-lg ${colors[session.color] || colors.gray}`;
+                        
+                        let sessionHTML = `
+                            <strong class="font-bold text-md">${session.title}</strong>
+                            <p class="text-sm opacity-90 mt-1 font-semibold">${getRoomFullName(session.room)}</p>`;
+                        
+                        if (session.chair) {
+                            sessionHTML += `<p class="text-sm mt-2 opacity-90"><strong>Chair:</strong> ${session.chair}</p>`;
+                        }
+
+                        sessionHTML += `<p class="text-sm mt-2 opacity-80">${session.description}</p>`;
+
+                        if (session.papers && session.papers.length > 0) {
+                            sessionHTML += `<div class="mt-3 pt-3 border-t border-white/20 space-y-2">`;
+                            session.papers.forEach(paper => {
+                                sessionHTML += `
+                                    <div>
+                                        <p class="font-semibold text-sm">${paper.title}</p>
+                                        <p class="text-xs opacity-75">${paper.authors}</p>
+                                    </div>
+                                `;
+                            });
+                            sessionHTML += `</div>`;
+                        }
+                        sessionEl.innerHTML = sessionHTML;
+                        timeSlotEl.appendChild(sessionEl);
+                    });
+                    scheduleList.appendChild(timeSlotEl);
+                }
+            };
+
+            const renderSchedule = (day) => {
+                if (window.innerWidth < 768) {
+                    renderListView(day);
+                } else {
+                    renderGridView(day);
+                }
+            };
+
+            daySelector.addEventListener('click', (e) => {
+                if (e.target.classList.contains('day-btn')) {
+                    document.querySelectorAll('.day-btn').forEach(btn => {
+                        btn.style.backgroundColor = 'transparent'; btn.style.color = '#333';
+                    });
+                    e.target.style.backgroundColor = 'var(--color-primary-purple)';
+                    e.target.style.color = 'white';
+                    renderSchedule(e.target.dataset.day);
+                }
+            });
+
+            scheduleContainer.addEventListener('mouseover', e => {
+                const card = e.target.closest('.session-card');
+                const header = e.target.closest('.room-header');
+
+                if (card && card.dataset.sessionId) {
+                    const day = document.querySelector('.day-btn[style*="color: white"]').dataset.day;
+                    const daySessions = processedSessions.filter(s => s.day === day);
+                    const session = daySessions[card.dataset.sessionId];
+                    
+                    if (!session) return;
+
+                    tooltip.style.display = 'block';
+                    let tooltipHTML = `<strong>${session.title}</strong><p>${session.startTime} - ${session.endTime} | ${getRoomFullName(session.room)}</p>`;
+                    if (session.chair) {
+                        tooltipHTML += `<p class="text-sm mt-2 opacity-90"><strong>Chair:</strong> ${session.chair}</p>`;
+                    }
+                    if(session.description) {
+                         tooltipHTML += `<p class="mt-2 text-gray-300">${session.description}</p>`;
+                    }
+
+                    if (session.papers && session.papers.length > 0) {
+                        tooltipHTML += `<hr class="my-2 border-gray-600">`;
+                        session.papers.forEach(paper => {
+                            tooltipHTML += `<div class="mb-1 last:mb-0"><p class="font-semibold text-sm">${paper.title}</p><p class="text-xs opacity-75">${paper.authors}</p></div>`;
+                        });
+                    }
+                    tooltip.innerHTML = tooltipHTML;
+                } else if (header && header.dataset.roomcode) {
+                    tooltip.style.display = 'block';
+                    tooltip.innerHTML = `<strong style="color: white; margin-bottom: 0;">${getRoomFullName(header.dataset.roomcode)}</strong>`;
+                }
+            });
+
+            scheduleContainer.addEventListener('mousemove', e => {
+                tooltip.style.left = `${e.clientX + 15}px`;
+                tooltip.style.top = `${e.clientY + 15}px`;
+            });
+            scheduleContainer.addEventListener('mouseout', e => {
+                if (e.target.closest('.session-card') || e.target.closest('.room-header')) {
+                    tooltip.style.display = 'none';
+                }
+            });
+            
+            renderSchedule("29/09");
+            window.addEventListener('resize', () => {
+                const selectedBtn = document.querySelector('.day-btn[style*="color: white"]');
+                if (selectedBtn) {
+                    renderSchedule(selectedBtn.dataset.day);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
