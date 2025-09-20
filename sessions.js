@@ -1,5 +1,5 @@
 const sessions = [   
-// javacript
+// Programação detalhada do evento
 { day:'29/09', startTime:'08:00', endTime:'09:00', room:'SJA1', description:'Tecnical Session', chair:'TBD', title:'BRACIS - Mining Medical Data', papers:'A Semantic Representation for the MIMIC-IV Database', authors:'Emilly Cristine Zoldan dos Santos, Filipe Santana da Silva', link:'#', color:'purple'},
 { day:'29/09', startTime:'08:00', endTime:'09:00', room:'SJA1', description:'Tecnical Session', chair:'TBD', title:'BRACIS - Mining Medical Data', papers:'GraphRAG on Electronic Health Record: A Knowledge Graph-Enhanced RAG Approach for Healthcare Information Access', authors:'João Vitor Baptista, Luís Paulo Faina Garcia', link:'#', color:'purple'},
 { day:'29/09', startTime:'08:00', endTime:'09:00', room:'SJA1', description:'Tecnical Session', chair:'TBD', title:'BRACIS - Mining Medical Data', papers:'Identifying asymptomatic nodes in network epidemics using graph neural networks', authors:'Conrado Catarcione Pinto, Amanda Camacho Novaes de Oliveira, Rodrigo Luna, Daniel Ratton Figueiredo', link:'#', color:'purple'},
@@ -612,6 +612,5 @@ const sessions = [
 { day:'01/10', startTime:'14:00', endTime:'14:30', room:'SRQ1', description:'', chair:'', title:'SPONSOR - AWS', papers:'', authors:'', link:'#', color:'blue'},
 { day:'01/10', startTime:'14:30', endTime:'15:00', room:'SRQ1', description:'', chair:'', title:'SPONSOR - IFOOD', papers:'', authors:'', link:'#', color:'blue'},
 { day:'01/10', startTime:'15:00', endTime:'16:00', room:'SRQ1', description:'', chair:'', title:'SPONSOR - KUNUMI', papers:'', authors:'', link:'#', color:'blue'},
-{ day:'02/10', startTime:'10:30', endTime:'12:30', room:'SR1', description:'', chair:'', title:'SPONSOR - HACKATHON - AWS', papers:'', authors:'', link:'#', color:'blue'},
-
+{ day:'01/10', startTime:'16:30', endTime:'18:30', room:'SR1', description:'', chair:'', title:'SPONSOR - HACKATHON - AWS', papers:'', authors:'', link:'#', color:'blue'},
 ];
