@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Programação por Salas | BRACIS & SBBD 2025</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
+    
+    <script src="https://paulotguerra.github.io/bracissbbd2025/sessions.js"></script>
+
+    <style>
+        :root {
+            --color-primary-blue: #0A3D62;
+            --color-light-blue: #E5F0F8;
+            --color-medium-blue: #3D73A9;
+            --color-background-light: #f7f7f7;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--color-background-light);
+            color: #1f2937;
+        }
+
+        .schedule-table th, .schedule-table td {
+            vertical-align: top;
+            padding: 8px 12px !important; 
+        }
+        .session-block-title {
+            background-color: var(--color-light-blue);
+            border-left: 6px solid var(--color-primary-blue);
+            transition: all 0.2s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            padding: 10px !important;
+            margin-bottom: 8px !important;
+        }
+        .session-block-title:hover {
+            box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+            transform: translateY(-1px);
+        }
+        
+        .paper-entry {
+            border-bottom: 1px dashed #E5E7EB;
+            padding-bottom: 6px;
+            margin-bottom: 6px;
+        }
+        .paper-entry:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+            margin-bottom: 0;
+        }
+        .chair-info {
+            font-size: 0.85rem; 
+            color: #374151; 
+            margin-top: 0.4rem;
+            font-weight: 500;
+        }
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 50;
+        }
+        .modal-content {
+            max-height: 80vh;
+            overflow-y: auto;
+            max-width: 90%;
+            width: 400px;
+        }
+
+        #current-day-button, .schedule-table thead {
+            background-color: var(--color-primary-blue) !important;
+            color: white !important;
+        }
+        #room-select-button {
+            background-color: #E5E7EB;
+            border-color: #D1D5DB;
+        }
+        .modal-content .room-option.bg-blue-100 {
+            background-color: #D6E8FF; 
+            border-color: var(--color-medium-blue);
+        }
+
+        .print-only {
+            display: none;
+        }
+
+        @media print {
+            body {
+                background-color: white !important;
+                margin: 0;
+                padding: 0;
+            }
+            .max-w-7xl {
+                max-width: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            
+            #controls-container,
+            #room-modal, .modal-overlay, #day-options {
+                display: none !important; 
+            }
+            
+            .print-only {
+                display: table-row !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                background-color: #f0f0f0 !important;
+                color: #000 !important;
+            }
+            
+            .print-only th {
+                text-align: center !important;
+            }
+
+            #schedule-container {
+                box-shadow: none !important;
+                padding: 0 !important;
+                background-color: white !important;
+            }
+            .schedule-table {
+                font-size: 9pt;
+                width: 100% !important;
+            }
+
+            .schedule-table thead {
+                display: table-header-group;
+            }
+            
+            .schedule-table th, .schedule-table td {
+                padding: 3px 6px !important;
+            }
+            .session-block-title {
+                box-shadow: none !important;
+                margin-bottom: 4px !important;
+                padding: 6px !important;
+                background-color: #f0f8ff !important; 
+                page-break-inside: avoid; 
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .schedule-table tr {
+                page-break-inside: avoid; 
+            }
+            .paper-entry {
+                margin-bottom: 4px;
+                padding-bottom: 4px;
+            }
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div class="max-w-7xl mx-auto p-4 md:p-8 pt-0">
+
+        <div id="controls-container" class="flex flex-col md:flex-row justify-start md:justify-start items-start md:items-center gap-4 mb-8 bg-white p-4 rounded-xl shadow-lg">
+            
+            <div class="flex flex-wrap items-center gap-4">
+                <div id="day-selector" class="relative">
+                    <button id="current-day-button" class="px-3 py-1.5 rounded-lg text-sm font-semibold shadow-md flex items-center gap-2 transition min-w-32 justify-center">
+                        <span id="selected-day-text"></span>
+                    </button>
+                    <div id="day-options" class="absolute z-40 top-full mt-2 w-full min-w-max bg-white rounded-lg shadow-xl border border-gray-200 hidden overflow-hidden">
+                    </div>
+                </div>
+
+                <button id="room-select-button" class="px-3 py-1.5 rounded-lg text-gray-700 text-sm font-semibold shadow-md flex items-center gap-2 transition w-full md:w-auto min-w-32 justify-center">
+                    <span id="selected-room-text">Selecione a Sala</span>
+                </button>
+            </div>
+            
+        </div>
+
+        <div id="schedule-container" class="bg-white rounded-xl shadow-lg p-2 md:p-6">
+            <p class="text-center text-gray-500 py-12">Selecione um dia e uma sala para ver a programação.</p>
+        </div>
+    </div>
+
+    <div id="room-modal" class="modal-overlay hidden">
+        <div class="modal-content bg-white rounded-xl shadow-2xl p-6">
+            <h3 class="text-xl font-bold mb-4" style="color: #1f2937;">Escolha a Sala</h3>
+            <div id="room-options-modal" class="space-y-2">
+            </div>
+            <button id="close-room-modal" class="mt-6 w-full py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition">Fechar</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            
+            const roomFullNames = {
+                "SJA": "Salão José de Alencar", "SR": "Sala de Reunião", "SRQ": "Salão Raquel de Queiroz",
+                "SAB": "Salão Antônio Bandeira", "AUDITORIO": "Auditório Principal", "POSTER": "Área de Pôsteres",
+                "AUDITÓRIO": "Auditório Principal",
+                "FOYER": "Espaço de Exposição de Pôsteres"
+            };
+
+            const colorsMap = {
+                'purple': 'blue', 
+                'orange': 'blue',
+                'green': 'blue',
+                'blue': 'blue',
+                'teal': 'blue',
+                'gray': 'blue'
+            };
+            
+            const getRoomDisplayName = (roomCode) => {
+                const match = roomCode.match(/([A-Z]+)(\d*)/);
+                if (!match) return roomCode;
+
+                const baseCode = match[1];
+                const number = match[2];
+                
+                let baseName = roomFullNames[baseCode] || roomFullNames[roomCode] || roomCode;
+
+                if (baseCode === 'AUDITORIO' || baseCode === 'AUDITÓRIO' || baseCode === 'FOYER') {
+                    return baseName;
+                }
+                
+                return number ? `${baseName} ${number}` : baseName;
+            };
+
+            const sortRooms = (rooms) => {
+                const order = [
+                    "AUDITORIO", "AUDITÓRIO",
+                    "SJA1", "SJA2", "SJA3", "SJA4",
+                    "SR1", "SR2", "SR3", "SR4",
+                    "SRQ1", "SRQ2",
+                    "SAB1", "SAB2",
+                    "FOYER"
+                ];
+
+                const normalizeRoom = (room) => {
+                    if (room.includes('AUDITORIO')) return 'AUDITORIO';
+                    return room;
+                };
+
+                const customSort = (a, b) => {
+                    const indexA = order.indexOf(normalizeRoom(a));
+                    const indexB = order.indexOf(normalizeRoom(b));
+
+                    if (indexA === -1 && indexB === -1) {
+                        return a.localeCompare(b);
+                    }
+                    if (indexA === -1) return 1;
+                    if (indexB === -1) return -1;
+
+                    return indexA - indexB;
+                };
+
+                const uniqueRooms = [...new Set(rooms.filter(r => r && r.trim() !== '').map(r => r.trim().toUpperCase()))];
+                return uniqueRooms.sort(customSort);
+            };
+
+            const scheduleContainer = document.getElementById('schedule-container');
+            const daySelectorContainer = document.getElementById('day-selector'); 
+            const currentDayButton = document.getElementById('current-day-button');
+            const selectedDayText = document.getElementById('selected-day-text');
+            const dayOptions = document.getElementById('day-options');
+            
+            const roomSelectButton = document.getElementById('room-select-button');
+            const selectedRoomText = document.getElementById('selected-room-text');
+            const roomModal = document.getElementById('room-modal');
+            const roomOptionsModal = document.getElementById('room-options-modal');
+            const closeRoomModal = document.getElementById('close-room-modal');
+            
+            const MINUTES_PER_HOUR = 60;
+
+            const timeToMinutes = t => {
+                if (!t) return 0;
+                const [h, m] = t.split(':').map(Number);
+                return h * MINUTES_PER_HOUR + m;
+            };
+            
+            const processSessions = (rawSessions) => {
+                const groupedSessions = {};
+                const finalSessions = [];
+
+                rawSessions.forEach(session => {
+                    const room = session.room ? session.room.trim().toUpperCase() : 'OUTROS';
+                    session.room = room;
+
+                    session.color = 'blue'; 
+
+                    const groupKey = `${session.day}-${session.startTime}-${session.endTime}-${room}-${session.title}`;
+
+                    session.tempId = groupKey; 
+
+                    if (session.papers && typeof session.papers === 'string' && session.authors) {
+                        if (!groupedSessions[groupKey]) {
+                            const masterSession = { ...session };
+                            masterSession.papers = []; 
+                            delete masterSession.authors;
+                            groupedSessions[groupKey] = masterSession;
+                            finalSessions.push(masterSession);
+                        }
+                        groupedSessions[groupKey].papers.push({
+                            title: session.papers,
+                            authors: session.authors
+                        });
+                    } else {
+                        session.papers = session.papers || []; 
+                        finalSessions.push(session);
+                    }
+                });
+
+                return finalSessions.filter((session, index, self) => 
+                    index === self.findIndex((s) => (s.tempId === session.tempId))
+                );
+            };
+
+            const processedSessions = processSessions(sessions);
+
+            const uniqueDays = [...new Set(processedSessions.map(s => s.day))].sort((a, b) => {
+                const [dayA, monthA] = a.split('/').map(Number);
+                const [dayB, monthB] = b.split('/').map(Number);
+                
+                if (monthA !== monthB) {
+                    return monthA - monthB;
+                }
+                return dayA - dayB;
+            });
+
+            const uniqueRooms = sortRooms(processedSessions.map(s => s.room));
+            
+            let currentDay = uniqueDays[0] || '';
+            let currentRoom = '';
+
+            const renderDaySelectorOptions = () => {
+                dayOptions.innerHTML = uniqueDays.map(day => `
+                    <button data-day="${day}" 
+                            class="day-option block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition 
+                            ${day === currentDay ? 'bg-gray-200 font-semibold' : ''}">
+                        ${day}
+                    </button>
+                `).join('');
+
+                selectedDayText.textContent = currentDay;
+            };
+
+            const renderRoomModalOptions = () => {
+                roomOptionsModal.innerHTML = uniqueRooms.map(room => {
+                    const roomDisplayName = getRoomDisplayName(room);
+                    return `
+                        <button data-room-code="${room}" 
+                                class="room-option block w-full text-left p-3 rounded-lg text-base transition border border-gray-300
+                                ${room === currentRoom ? 'bg-blue-100 border-blue-500 font-bold' : 'bg-white hover:bg-gray-50'}"
+                                style="${room === currentRoom ? `color: #1f2937;` : 'color: #1f2937;'}">
+                            ${roomDisplayName}
+                            <span class="text-xs text-gray-400 ml-2">(${room})</span>
+                        </button>
+                    `;
+                }).join('');
+
+                if (currentRoom) {
+                    selectedRoomText.textContent = getRoomDisplayName(currentRoom);
+                }
+            };
+
+
+            const renderRoomSchedule = (day, room) => {
+                if (!day || !room) {
+                    scheduleContainer.innerHTML = `<p class="text-center text-gray-500 py-12">Selecione um dia e uma sala para ver a programação.</p>`;
+                    return;
+                }
+                
+                const filteredSessions = processedSessions
+                    .filter(s => s.day === day && s.room === room)
+                    .sort((a, b) => timeToMinutes(a.startTime) - timeToMinutes(b.startTime));
+
+                const roomDisplayName = getRoomDisplayName(room);
+
+                if (filteredSessions.length === 0) {
+                    scheduleContainer.innerHTML = `<p class="text-center text-gray-500 py-8">Nenhuma sessão programada para a Sala **${roomDisplayName}** em **${day}**.</p>`;
+                    return;
+                }
+
+                let html = `<div class="shadow-xl rounded-lg overflow-x-auto border border-gray-300">`;
+                html += `<table class="min-w-full divide-y divide-gray-300 schedule-table">`;
+                
+                html += `<thead style="background-color: var(--color-primary-blue);" class="text-white">
+                            <tr class="print-only" style="background-color: var(--color-medium-blue) !important; color: white !important;">
+                                <th colspan="2" class="px-4 py-2 text-sm font-semibold" style="border: none !important; color: white !important;">
+                                    ${day} - ${roomDisplayName}
+                                </th>
+                            </tr>
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider min-w-24 border-r border-blue-700">Horário</th>
+                                <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Sessão / Trabalhos</th>
+                            </tr>
+                        </thead>`;
+                
+                html += `<tbody class="bg-white divide-y divide-gray-300">`;
+
+                const groupedByTime = filteredSessions.reduce((acc, session) => {
+                    const timeKey = `${session.startTime} - ${session.endTime}`;
+                    if (!acc[timeKey]) acc[timeKey] = [];
+                    acc[timeKey].push(session);
+                    return acc;
+                }, {});
+
+                Object.keys(groupedByTime).sort().forEach(timeKey => {
+                    const sessionsAtTime = groupedByTime[timeKey];
+
+                    html += `<tr class="hover:bg-gray-50">
+                                <td class="px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-900 align-top border-r border-gray-300">${timeKey}</td>
+                                <td class="px-4 py-2 text-sm text-gray-700 align-top">`;
+
+                    sessionsAtTime.forEach(session => {
+                        const blockTitle = session.title;
+                        
+                        const sessionColorClass = `session-block-title`; 
+
+                        const chairText = session.chair && session.chair !== 'TBD' ? 
+                                `<p class="chair-info font-bold">${session.chair.startsWith('Chair:') ? session.chair : 'Chair: ' + session.chair}</p>` : '';
+                        
+                        let paperListHTML = '';
+                        const hasPapers = session.papers && session.papers.length > 0;
+                        const hasDescription = session.description;
+
+                        if (hasPapers) {
+                            paperListHTML = `<div class="mt-2 pt-2 border-t border-gray-200 space-y-2">`; 
+                            session.papers.forEach(paper => {
+                                paperListHTML += `
+                                    <div class="paper-entry">
+                                        <p class="font-bold text-xs leading-tight text-gray-800">${paper.title}</p>
+                                        <p class="text-xs mt-0.5 opacity-90 text-gray-600">${paper.authors}</p>
+                                    </div>
+                                `;
+                            });
+                            paperListHTML += `</div>`;
+                        } else if (hasDescription) {
+                            paperListHTML = `<p class="text-sm mt-1.5 opacity-80 italic text-gray-600">${session.description}</p>`;
+                        }
+                        
+                        const contentBelowTitle = hasPapers || hasDescription;
+                        let contentBlockHTML = '';
+
+                        if (contentBelowTitle) {
+                             contentBlockHTML = `
+                                <div class="bg-white p-2 rounded-md border border-gray-200 mt-2">
+                                    ${paperListHTML}
+                                </div>
+                            `;
+                        } 
+
+                        html += `<a href="${session.link || '#'}" target="_blank" class="block rounded-lg shadow-lg transition hover:shadow-xl ${sessionColorClass}" data-color="blue">
+                                    <strong class="font-extrabold text-gray-900 text-sm block leading-tight">${blockTitle}</strong>
+                                    ${chairText}
+                                    ${contentBlockHTML}
+                                </a>`;
+                    });
+                    html += `</td></tr>`;
+                });
+
+                html += `</tbody></table></div>`;
+                scheduleContainer.innerHTML = html;
+            };
+
+            currentDayButton.addEventListener('click', () => {
+                const isHidden = dayOptions.classList.contains('hidden');
+                dayOptions.classList.toggle('hidden');
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!daySelectorContainer.contains(e.target)) {
+                    dayOptions.classList.add('hidden');
+                }
+            });
+
+            dayOptions.addEventListener('click', (e) => {
+                const targetButton = e.target.closest('.day-option');
+                if (targetButton) {
+                    const newDay = targetButton.dataset.day;
+                    if (newDay !== currentDay) {
+                        currentDay = newDay;
+                        selectedDayText.textContent = currentDay;
+                        
+                        document.querySelectorAll('.day-option').forEach(btn => {
+                            btn.classList.remove('bg-gray-200', 'font-semibold');
+                        });
+                        targetButton.classList.add('bg-gray-200', 'font-semibold');
+
+                        renderRoomSchedule(currentDay, currentRoom);
+                    }
+                    dayOptions.classList.add('hidden');
+                }
+            });
+
+            roomSelectButton.addEventListener('click', () => {
+                renderRoomModalOptions();
+                roomModal.classList.remove('hidden');
+            });
+            
+            closeRoomModal.addEventListener('click', () => {
+                roomModal.classList.add('hidden');
+            });
+
+            roomOptionsModal.addEventListener('click', (e) => {
+                const targetButton = e.target.closest('.room-option');
+                if (targetButton) {
+                    const newRoom = targetButton.dataset.roomCode;
+                    if (newRoom !== currentRoom) {
+                        currentRoom = newRoom;
+                        
+                        selectedRoomText.textContent = getRoomDisplayName(currentRoom);
+
+                        document.querySelectorAll('.room-option').forEach(btn => {
+                            btn.classList.remove('bg-blue-100', 'border-blue-500', 'font-bold');
+                            btn.classList.add('border-gray-300');
+                        });
+                        targetButton.classList.add('bg-blue-100', 'border-blue-500', 'font-bold');
+                        targetButton.classList.remove('border-gray-300');
+
+
+                        renderRoomSchedule(currentDay, currentRoom);
+                    }
+                    roomModal.classList.add('hidden');
+                }
+            });
+            
+             roomModal.addEventListener('click', (e) => {
+                if (e.target === roomModal) {
+                    roomModal.classList.add('hidden');
+                }
+            });
+
+            renderDaySelectorOptions();
+            
+            if (uniqueRooms.length > 0) {
+                currentRoom = uniqueRooms[0];
+                selectedRoomText.textContent = getRoomDisplayName(currentRoom);
+            } else {
+                 selectedRoomText.textContent = 'Nenhuma sala disponível';
+            }
+            
+            renderRoomModalOptions();
+            
+            if (currentDay && currentRoom) {
+                 renderRoomSchedule(currentDay, currentRoom);
+            }
+        });
+    </script>
+</body>
+</html>
