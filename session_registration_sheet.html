@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Folha de Registro de Sessão - BRACIS 2025</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f7f7;
+            color: #1f2937;
+        }
+        
+        @media print {
+            body {
+                background-color: white !important;
+                width: 210mm; 
+                min-height: 297mm;
+                margin: 0;
+                padding: 0;
+                font-size: 0.75rem;
+            }
+            .page-container {
+                box-shadow: none !important;
+                border: none !important;
+                margin: 5mm !important;
+                padding: 0;
+                width: auto;
+            }
+            .print-border {
+                border: none !important;
+                border-radius: 0 !important;
+                padding: 0 !important;
+            }
+            .new-page {
+                page-break-before: always;
+            }
+            .presentation-block {
+                background-color: white !important;
+                border: 1px solid #e5e7eb !important;
+                box-shadow: none !important;
+            }
+            .page-container > header {
+                padding: 0.25rem 0.5rem !important;
+                margin-bottom: 0 !important;
+                border-radius: 0 !important;
+                background-color: #1e3a8a !important;
+            }
+            .page-container > header h1 {
+                padding: 0 !important;
+                margin: 0 !important;
+                color: #ffffff !important;
+            }
+            .header-text {
+                font-size: 1.1rem !important;
+            }
+            .section-title {
+                font-size: 1rem !important;
+            }
+            section {
+                padding: 0.25rem !important;
+                margin-bottom: 0.5rem !important;
+            }
+            .session-data-grid {
+                gap: 0.5rem !important;
+            }
+            .input-inline-group label {
+                 margin-right: 0.3rem;
+            }
+            .multi-field-group {
+                gap: 0.5rem !important;
+            }
+            .section-observacoes {
+                display: none;
+            }
+            .print-instructions {
+                margin-top: 0.25rem !important; 
+                text-align: left !important; 
+                padding: 0 !important; 
+            }
+            
+            /* REMOVIDO: display: none do signature-area para permitir que a instrução de impressão apareça */
+        }
+        
+        .header-bg {
+            background-color: #1e3a8a;
+        }
+        .header-text {
+            color: #ffffff;
+        }
+        .section-title {
+            color: #1e3a8a;
+        }
+        .input-line {
+            border-bottom: 1px dashed #9ca3af;
+            min-height: 1.5rem;
+        }
+        .presentation-block {
+            margin-bottom: 0.75rem;
+        }
+        .presentation-block:last-child {
+            margin-bottom: 0;
+        }
+        .input-inline-group {
+            display: flex;
+            align-items: center;
+        }
+        .input-inline-group label {
+            flex-shrink: 0;
+            margin-right: 0.5rem;
+        }
+        .input-inline-group .input-line {
+            flex-grow: 1;
+        }
+        .multi-field-group {
+            display: flex;
+            gap: 1rem;
+        }
+        .multi-field-group .input-inline-group {
+            flex-grow: 1;
+        }
+        .field-lg {
+            flex-basis: 50%;
+        }
+        .field-sm {
+            flex-basis: 25%;
+        }
+
+
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'bracis-blue': '#1e3a8a',
+                        'bracis-light': '#bfdbfe',
+                    },
+                }
+            }
+        }
+    </script>
+</head>
+<body class="p-4 md:p-10">
+
+    <div class="page-container mx-auto bg-white rounded-lg shadow-xl p-6 md:p-8 lg:p-10 max-w-4xl print-border">
+
+        <header class="header-bg text-center py-2 px-4 mb-6 rounded-t-lg">
+            <h1 class="text-2xl font-extrabold header-text">Folha de Registros da Sessão</h1>
+        </header>
+
+        <section class="mb-6 p-4 border border-gray-300 rounded-lg">
+            <h3 class="text-xl font-semibold mb-4 section-title border-b border-bracis-blue pb-1">1. Dados da Sessão</h3>
+            
+            <div class="grid grid-cols-1 gap-4 text-sm session-data-grid">
+                
+                <div class="multi-field-group">
+                    <div class="input-inline-group field-lg">
+                        <label class="font-medium">Evento:</label>
+                        <div class="input-line font-bold text-gray-700"></div>
+                    </div>
+                    <div class="input-inline-group field-sm">
+                        <label class="font-medium">Data:</label>
+                        <div class="input-line"></div>
+                    </div>
+                    <div class="input-inline-group field-sm">
+                        <label class="font-medium">Horário:</label>
+                        <div class="input-line"></div>
+                    </div>
+                </div>
+
+                <div class="col-span-full input-inline-group">
+                    <label class="font-medium">Título da Sessão:</label>
+                    <div class="input-line"></div>
+                </div>
+
+                <div class="col-span-1 input-inline-group">
+                    <label class="font-medium">Responsável:</label>
+                    <div class="input-line"></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-6 p-4 border border-gray-300 rounded-lg">
+            <h3 class="text-xl font-semibold mb-4 section-title border-b border-bracis-blue pb-1">2. Registros de Apresentação</h3>
+            
+            <div id="presentation-blocks" class="space-y-2">
+                
+                <div class="presentation-block bg-gray-50 p-3 rounded-lg border border-bracis-light shadow-sm">
+                    <div class="flex items-center text-sm mb-3">
+                        <label class="font-bold flex-shrink-0 w-32">Título do trabalho:</label>
+                        <div class="input-line flex-grow ml-1"></div>
+                    </div>
+                    <div class="flex items-center text-sm">
+                        <label class="font-bold flex-shrink-0 w-32">Apresentado por:</label>
+                        <div class="input-line flex-grow ml-1"></div>
+                    </div>
+                </div>
+
+                <div class="presentation-block bg-gray-50 p-3 rounded-lg border border-bracis-light shadow-sm">
+                    <div class="flex items-center text-sm mb-3">
+                        <label class="font-bold flex-shrink-0 w-32">Título do trabalho:</label>
+                        <div class="input-line flex-grow ml-1"></div>
+                    </div>
+                    <div class="flex items-center text-sm">
+                        <label class="font-bold flex-shrink-0 w-32">Apresentado por:</label>
+                        <div class="input-line flex-grow ml-1"></div>
+                    </div>
+                </div>
+                
+                <div class="presentation-block bg-gray-50 p-3 rounded-lg border border-bracis-light shadow-sm">
+                    <div class="flex items-center text-sm mb-3">
+                        <label class="font-bold flex-shrink-0 w-32">Título do trabalho:</label>
+                        <div class="input-line flex-grow ml-1"></div>
+                    </div>
+                    <div class="flex items-center text-sm">
+                        <label class="font-bold flex-shrink-0 w-32">Apresentado por:</label>
+                        <div class="input-line flex-grow ml-1"></div>
+                    </div>
+                </div>
+
+                 <div class="presentation-block bg-gray-50 p-3 rounded-lg border border-bracis-light shadow-sm">
+                    <div class="flex items-center text-sm mb-3">
+                        <label class="font-bold flex-shrink-0 w-32">Título do trabalho:</label>
+                        <div class="input-line flex-grow ml-1"></div>
+                    </div>
+                    <div class="flex items-center text-sm">
+                        <label class="font-bold flex-shrink-0 w-32">Apresentado por:</label>
+                        <div class="input-line flex-grow ml-1"></div>
+                    </div>
+                </div>
+
+                <div class="presentation-block bg-gray-50 p-3 rounded-lg border border-bracis-light shadow-sm">
+                    <div class="flex items-center text-sm mb-3">
+                        <label class="font-bold flex-shrink-0 w-32">Título do trabalho:</label>
+                        <div class="input-line flex-grow ml-1"></div>
+                    </div>
+                    <div class="flex items-center text-sm">
+                        <label class="font-bold flex-shrink-0 w-32">Apresentado por:</label>
+                        <div class="input-line flex-grow ml-1"></div>
+                    </div>
+                </div>
+
+                <div class="presentation-block bg-gray-50 p-3 rounded-lg border border-bracis-light shadow-sm">
+                    <div class="flex items-center text-sm mb-3">
+                        <label class="font-bold flex-shrink-0 w-32">Título do trabalho:</label>
+                        <div class="input-line flex-grow ml-1"></div>
+                    </div>
+                    <div class="flex items-center text-sm">
+                        <label class="font-bold flex-shrink-0 w-32">Apresentado por:</label>
+                        <div class="input-line flex-grow ml-1"></div>
+                    </div>
+                </div>
+
+                <div class="presentation-block bg-gray-50 p-3 rounded-lg border border-bracis-light shadow-sm">
+                    <div class="flex items-center text-sm mb-3">
+                        <label class="font-bold flex-shrink-0 w-32">Título do trabalho:</label>
+                        <div class="input-line flex-grow ml-1"></div>
+                    </div>
+                    <div class="flex items-center text-sm">
+                        <label class="font-bold flex-shrink-0 w-32">Apresentado por:</label>
+                        <div class="input-line flex-grow ml-1"></div>
+                    </div>
+                </div>
+
+                <div class="presentation-block bg-gray-50 p-3 rounded-lg border border-bracis-light shadow-sm">
+                    <div class="flex items-center text-sm mb-3">
+                        <label class="font-bold flex-shrink-0 w-32">Título do trabalho:</label>
+                        <div class="input-line flex-grow ml-1"></div>
+                    </div>
+                    <div class="flex items-center text-sm">
+                        <label class="font-bold flex-shrink-0 w-32">Apresentado por:</label>
+                        <div class="input-line flex-grow ml-1"></div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+
+        <section class="p-4 border border-gray-300 rounded-lg section-observacoes">
+            <h3 class="text-xl font-semibold mb-4 section-title border-b border-bracis-blue pb-1">3. Observações</h3>
+            <p class="text-gray-600 text-xs mb-2 italic">Registro de ausências, problemas técnicos, atrasos, dúvidas pendentes, ou outros comentários relevantes (uso exclusivo do Responsável).</p>
+
+            <div class="space-y-3">
+                <div class="input-line h-8"></div>
+                <div class="input-line h-8"></div>
+                <div class="input-line h-8"></div>
+                <div class="input-line h-8"></div>
+                <div class="input-line h-8"></div>
+            </div>
+        </section>
+
+        <div class="mt-6 pt-4 text-center text-sm text-gray-700 signature-area print:pt-2 print:mt-2">
+             <p class="hidden print:block print:text-xs print:italic print-instructions">
+                * Caso deseje, utilize o verso desta folha para registrar ocorrências da sessão, como problemas técnicos, atrasos, dúvidas ou outros comentários relevantes.
+            </p>
+            <p style="display: none;">Assinatura do Responsável:</p>
+            <div style="display: none;" class="mx-auto w-1/2 input-line mt-4 print:mt-2"></div>
+        </div>
+
+    </div>
+
+</body>
+</html>

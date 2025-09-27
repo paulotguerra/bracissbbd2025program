@@ -25,13 +25,36 @@
             color: #1f2937;
         }
 
+        .schedule-table-container {
+            margin-bottom: 24px;
+        }
+
+        .schedule-table {
+            border-radius: 0.75rem; 
+            overflow: hidden; 
+        }
+
         .schedule-table th, .schedule-table td {
             vertical-align: top;
             padding: 8px 12px !important; 
         }
+        
+        .room-table-header {
+            background-color: var(--color-primary-blue) !important;
+            color: white !important;
+        }
+        .room-table-print-header {
+            background-color: var(--color-primary-blue) !important;
+            color: white !important;
+        }
+        
+        .session-column-header {
+            background-color: var(--color-medium-blue) !important;
+            color: white !important;
+        }
+
         .session-block-title {
             background-color: var(--color-light-blue);
-            border-left: 6px solid var(--color-primary-blue);
             transition: all 0.2s;
             box-shadow: 0 1px 3px rgba(0,0,0,0.08);
             padding: 10px !important;
@@ -77,7 +100,7 @@
             width: 400px;
         }
 
-        #current-day-button, .schedule-table thead {
+        #current-day-button {
             background-color: var(--color-primary-blue) !important;
             color: white !important;
         }
@@ -92,6 +115,11 @@
 
         .print-only {
             display: none;
+        }
+        
+        .room-header-row {
+            background-color: #f0f4f8 !important;
+            border-top: 1px solid #ccc; 
         }
 
         @media print {
@@ -111,12 +139,16 @@
                 display: none !important; 
             }
             
+            .room-table-header {
+                display: none !important;
+            }
+            
             .print-only {
                 display: table-row !important;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
-                background-color: #f0f0f0 !important;
-                color: #000 !important;
+                background-color: var(--color-primary-blue) !important;
+                color: white !important;
             }
             
             .print-only th {
@@ -128,9 +160,19 @@
                 padding: 0 !important;
                 background-color: white !important;
             }
+            
+            .schedule-table-container {
+                page-break-before: always;
+                box-shadow: none !important;
+            }
+            .schedule-table-container:first-of-type {
+                page-break-before: auto;
+            }
+
             .schedule-table {
                 font-size: 9pt;
                 width: 100% !important;
+                border: 1px solid #999;
             }
 
             .schedule-table thead {
@@ -214,7 +256,10 @@
                 'gray': 'blue'
             };
             
-            const getRoomDisplayName = (roomCode) => {
+            const getRoomDisplayName = (roomCode, includeAbbreviation = false) => {
+                if (roomCode === 'ALL') {
+                    return 'Todas as salas';
+                }
                 const match = roomCode.match(/([A-Z]+)(\d*)/);
                 if (!match) return roomCode;
 
@@ -227,7 +272,9 @@
                     return baseName;
                 }
                 
-                return number ? `${baseName} ${number}` : baseName;
+                const displayName = number ? `${baseName} ${number}` : baseName;
+                
+                return displayName;
             };
 
             const sortRooms = (rooms) => {
@@ -246,6 +293,9 @@
                 };
 
                 const customSort = (a, b) => {
+                    if (a === 'ALL') return 1;
+                    if (b === 'ALL') return -1;
+                    
                     const indexA = order.indexOf(normalizeRoom(a));
                     const indexB = order.indexOf(normalizeRoom(b));
 
@@ -331,10 +381,12 @@
                 return dayA - dayB;
             });
 
-            const uniqueRooms = sortRooms(processedSessions.map(s => s.room));
+            const rawUniqueRooms = [...new Set(processedSessions.map(s => s.room).filter(r => r && r.trim() !== ''))];
+            const sortedRooms = sortRooms(rawUniqueRooms);
+            const uniqueRooms = [...sortedRooms, 'ALL']; 
             
             let currentDay = uniqueDays[0] || '';
-            let currentRoom = '';
+            let currentRoom = 'ALL'; 
 
             const renderDaySelectorOptions = () => {
                 dayOptions.innerHTML = uniqueDays.map(day => `
@@ -350,59 +402,57 @@
 
             const renderRoomModalOptions = () => {
                 roomOptionsModal.innerHTML = uniqueRooms.map(room => {
-                    const roomDisplayName = getRoomDisplayName(room);
+                    const roomDisplayName = getRoomDisplayName(room, false);
+                    const roomCode = room;
+                    const isAllRooms = roomCode === 'ALL';
+                    
                     return `
-                        <button data-room-code="${room}" 
+                        <button data-room-code="${roomCode}" 
                                 class="room-option block w-full text-left p-3 rounded-lg text-base transition border border-gray-300
-                                ${room === currentRoom ? 'bg-blue-100 border-blue-500 font-bold' : 'bg-white hover:bg-gray-50'}"
-                                style="${room === currentRoom ? `color: #1f2937;` : 'color: #1f2937;'}">
+                                ${roomCode === currentRoom ? 'bg-blue-100 border-blue-500 font-bold' : 'bg-white hover:bg-gray-50'}"
+                                style="${roomCode === currentRoom ? `color: #1f2937;` : 'color: #1f2937;'}">
                             ${roomDisplayName}
-                            <span class="text-xs text-gray-400 ml-2">(${room})</span>
+                            ${isAllRooms ? '' : ``}
                         </button>
                     `;
                 }).join('');
 
                 if (currentRoom) {
-                    selectedRoomText.textContent = getRoomDisplayName(currentRoom);
+                    selectedRoomText.textContent = getRoomDisplayName(currentRoom, false);
                 }
             };
 
-
-            const renderRoomSchedule = (day, room) => {
-                if (!day || !room) {
-                    scheduleContainer.innerHTML = `<p class="text-center text-gray-500 py-12">Selecione um dia e uma sala para ver a programação.</p>`;
-                    return;
-                }
+            const generateRoomTableHtml = (roomCode, day, sessions) => {
+                const roomDisplayName = getRoomDisplayName(roomCode, false); 
+                const printHeader = roomCode === 'ALL' ? 'TODAS AS SALAS' : roomDisplayName.toUpperCase();
                 
-                const filteredSessions = processedSessions
-                    .filter(s => s.day === day && s.room === room)
-                    .sort((a, b) => timeToMinutes(a.startTime) - timeToMinutes(b.startTime));
-
-                const roomDisplayName = getRoomDisplayName(room);
-
-                if (filteredSessions.length === 0) {
-                    scheduleContainer.innerHTML = `<p class="text-center text-gray-500 py-8">Nenhuma sessão programada para a Sala **${roomDisplayName}** em **${day}**.</p>`;
-                    return;
-                }
-
-                let html = `<div class="shadow-xl rounded-lg overflow-x-auto border border-gray-300">`;
-                html += `<table class="min-w-full divide-y divide-gray-300 schedule-table">`;
+                let tableHtml = `<div class="shadow-xl rounded-lg overflow-x-auto border border-gray-300 schedule-table-container">`;
+                tableHtml += `<table class="min-w-full divide-y divide-gray-300 schedule-table">`;
                 
-                html += `<thead style="background-color: var(--color-primary-blue);" class="text-white">
-                            <tr class="print-only" style="background-color: var(--color-medium-blue) !important; color: white !important;">
-                                <th colspan="2" class="px-4 py-2 text-sm font-semibold" style="border: none !important; color: white !important;">
-                                    ${day} - ${roomDisplayName}
-                                </th>
-                            </tr>
-                            <tr>
-                                <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider min-w-24 border-r border-blue-700">Horário</th>
-                                <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Sessão / Trabalhos</th>
-                            </tr>
-                        </thead>`;
                 
-                html += `<tbody class="bg-white divide-y divide-gray-300">`;
+                tableHtml += `<thead class="room-table-header">
+                                <tr>
+                                    <th colspan="2" class="px-4 py-3 text-center text-sm font-bold uppercase tracking-wider">${roomDisplayName}</th>
+                                </tr>
+                            </thead>`;
 
-                const groupedByTime = filteredSessions.reduce((acc, session) => {
+                
+                tableHtml += `<thead class="room-table-print-header">
+                                <tr class="print-only">
+                                    <th colspan="2" class="px-4 py-2 text-sm font-semibold" style="border: none !important;">
+                                        ${day} - ${printHeader}
+                                    </th>
+                                </tr>
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider min-w-24 border-r session-column-header">Horário</th>
+                                    <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider session-column-header">Sessão / Trabalhos</th>
+                                </tr>
+                            </thead>`;
+                
+                
+                tableHtml += `<tbody class="bg-white divide-y divide-gray-300">`;
+
+                const groupedByTime = sessions.reduce((acc, session) => {
                     const timeKey = `${session.startTime} - ${session.endTime}`;
                     if (!acc[timeKey]) acc[timeKey] = [];
                     acc[timeKey].push(session);
@@ -412,13 +462,12 @@
                 Object.keys(groupedByTime).sort().forEach(timeKey => {
                     const sessionsAtTime = groupedByTime[timeKey];
 
-                    html += `<tr class="hover:bg-gray-50">
+                    tableHtml += `<tr class="hover:bg-gray-50">
                                 <td class="px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-900 align-top border-r border-gray-300">${timeKey}</td>
                                 <td class="px-4 py-2 text-sm text-gray-700 align-top">`;
 
                     sessionsAtTime.forEach(session => {
                         const blockTitle = session.title;
-                        
                         const sessionColorClass = `session-block-title`; 
 
                         const chairText = session.chair && session.chair !== 'TBD' ? 
@@ -440,7 +489,7 @@
                             });
                             paperListHTML += `</div>`;
                         } else if (hasDescription) {
-                            paperListHTML = `<p class="text-sm mt-1.5 opacity-80 italic text-gray-600">${session.description}</p>`;
+                            paperListHTML = `<p class="text-xs mt-1.5 opacity-80 text-gray-600">${session.description}</p>`;
                         }
                         
                         const contentBelowTitle = hasPapers || hasDescription;
@@ -454,18 +503,65 @@
                             `;
                         } 
 
-                        html += `<a href="${session.link || '#'}" target="_blank" class="block rounded-lg shadow-lg transition hover:shadow-xl ${sessionColorClass}" data-color="blue">
+                        tableHtml += `<a href="${session.link || '#'}" target="_blank" class="block rounded-lg shadow-lg transition hover:shadow-xl ${sessionColorClass}" data-color="blue">
                                     <strong class="font-extrabold text-gray-900 text-sm block leading-tight">${blockTitle}</strong>
                                     ${chairText}
                                     ${contentBlockHTML}
                                 </a>`;
                     });
-                    html += `</td></tr>`;
+                    tableHtml += `</td></tr>`;
                 });
 
-                html += `</tbody></table></div>`;
-                scheduleContainer.innerHTML = html;
+                tableHtml += `</tbody></table></div>`;
+                return tableHtml;
             };
+
+            const renderRoomSchedule = (day, room) => {
+                if (!day) {
+                    scheduleContainer.innerHTML = `<p class="text-center text-gray-500 py-12">Selecione um dia e uma sala para ver a programação.</p>`;
+                    return;
+                }
+                
+                const roomOrder = uniqueRooms.filter(r => r !== 'ALL');
+                
+                let filteredSessions = processedSessions
+                    .filter(s => s.day === day && (s.room === room || room === 'ALL'));
+
+                const roomDisplayName = getRoomDisplayName(room, false);
+
+                if (filteredSessions.length === 0) {
+                    scheduleContainer.innerHTML = `<p class="text-center text-gray-500 py-8">Nenhuma sessão programada para **${roomDisplayName}** em **${day}**.</p>`;
+                    return;
+                }
+
+                let finalHtml = '';
+
+                if (room === 'ALL') {
+                    
+                    const sessionsByRoom = filteredSessions.reduce((acc, session) => {
+                        if (!acc[session.room]) acc[session.room] = [];
+                        acc[session.room].push(session);
+                        return acc;
+                    }, {});
+
+                    
+                    roomOrder.forEach(roomCode => {
+                        const sessionsInRoom = sessionsByRoom[roomCode];
+                        if (sessionsInRoom && sessionsInRoom.length > 0) {
+                            
+                            sessionsInRoom.sort((a, b) => timeToMinutes(a.startTime) - timeToMinutes(b.startTime));
+                            finalHtml += generateRoomTableHtml(roomCode, day, sessionsInRoom);
+                        }
+                    });
+
+                } else {
+                    
+                    finalHtml = generateRoomTableHtml(room, day, filteredSessions);
+                }
+                
+                scheduleContainer.innerHTML = finalHtml;
+            };
+
 
             currentDayButton.addEventListener('click', () => {
                 const isHidden = dayOptions.classList.contains('hidden');
@@ -513,7 +609,7 @@
                     if (newRoom !== currentRoom) {
                         currentRoom = newRoom;
                         
-                        selectedRoomText.textContent = getRoomDisplayName(currentRoom);
+                        selectedRoomText.textContent = getRoomDisplayName(currentRoom, false);
 
                         document.querySelectorAll('.room-option').forEach(btn => {
                             btn.classList.remove('bg-blue-100', 'border-blue-500', 'font-bold');
@@ -538,8 +634,8 @@
             renderDaySelectorOptions();
             
             if (uniqueRooms.length > 0) {
-                currentRoom = uniqueRooms[0];
-                selectedRoomText.textContent = getRoomDisplayName(currentRoom);
+                currentRoom = 'ALL';
+                selectedRoomText.textContent = getRoomDisplayName(currentRoom, false);
             } else {
                  selectedRoomText.textContent = 'Nenhuma sala disponível';
             }

@@ -721,8 +721,8 @@ const sessions = [
 { day:'29/09', startTime:'18:30', endTime:'20:00', room:'AUDITÓRIO', description:'', chair:'', title:'SBBD - Boas-vindas e Minute Madness', papers:'', authors:'', link:'#', color:'orange'},
 { day:'30/09', startTime:'18:00', endTime:'19:00', room:'AUDITÓRIO', description:'', chair:'', title:'ABERTURA - BRACIS & SBBD 2025', papers:'', authors:'', link:'#', color:'blue'},
 { day:'01/10', startTime:'10:30', endTime:'12:00', room:'SJA4', description:'Comissão Especial de Banco de Dados', chair:'', title:'Reunião - CEBD', papers:'', authors:'', link:'#', color:'orange'},
-{ day:'01/10', startTime:'16:30', endTime:'17:30', room:'SJA1', description:'', chair:'', title:'Reunião - CEIA-CEIC-CEPLN (Conjunta)', papers:'', authors:'', link:'#', color:'orange'},
-{ day:'01/10', startTime:'17:30', endTime:'19:00', room:'SJA1', description:'Comissão Especial de Inteligência Artificial', chair:'', title:'Reunião - CEIA', papers:'', authors:'', link:'#', color:'purple'},
-{ day:'01/10', startTime:'17:30', endTime:'19:00', room:'SJA2', description:'Comissão Especial de Inteligência Computacional', chair:'', title:'Reunião - CEIC', papers:'', authors:'', link:'#', color:'green'},
-{ day:'01/10', startTime:'17:30', endTime:'19:00', room:'SJA3', description:'Comissão Especial de Processamento de Linguagem Natural', chair:'', title:'Reunião - CEPLN', papers:'', authors:'', link:'#', color:'teal'},
+{ day:'01/10', startTime:'16:30', endTime:'17:30', room:'SJA1', description:'Reunião conjunta das comissões especiais de Inteligência Artificial, Inteligência Computacional e Processamento de Linguagem Natural.', chair:'', title:'Reunião - CEIA-CEIC-CEPLN', papers:'', authors:'', link:'#', color:'orange'},
+{ day:'01/10', startTime:'17:30', endTime:'19:00', room:'SJA1', description:'Reunião da Comissão Especial de Inteligência Artificial', chair:'', title:'Reunião - CEIA', papers:'', authors:'', link:'#', color:'purple'},
+{ day:'01/10', startTime:'17:30', endTime:'19:00', room:'SJA2', description:'Reunião da Comissão Especial de Inteligência Computacional', chair:'', title:'Reunião - CEIC', papers:'', authors:'', link:'#', color:'green'},
+{ day:'01/10', startTime:'17:30', endTime:'19:00', room:'SJA3', description:'Reunião da Comissão Especial de Processamento de Linguagem Natural', chair:'', title:'Reunião - CEPLN', papers:'', authors:'', link:'#', color:'teal'},
 ];
